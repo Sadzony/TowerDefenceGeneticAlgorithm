@@ -32,5 +32,7 @@
 *.app
 
 .vs/
-Debug/
-Release/
+Debug/TowerDefense.exe
+Debug/TowerDefense.pdb
+Release/TowerDefense.exe
+Release/TowerDefense.pdb

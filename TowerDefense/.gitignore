@@ -4,3 +4,4 @@ arial
 SFML/*
 .settings/*
 /Debug/
+/Release/
