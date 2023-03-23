@@ -364,7 +364,7 @@ int main() {
 	GameBoard* gameBoard;
 	TowerAndMonsterController* attackController;
 	resetGame(&clk, &gameState, &gameMenuController, &towerController, &monsterController, &gameBoard, &attackController, window);
-	//m_AIController.setGameController()
+	//m_AIController.setGameController() 
 	aIController.setGameBoard(gameBoard);
 	aIController.setTimer(clk);
 	aIController.setGameState(gameState);
