@@ -78,6 +78,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)..\SFML-2.5.1-windows-vc15-32-bit\SFML-2.5.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>Default</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -132,6 +133,7 @@
   <ItemGroup>
     <ClInclude Include="AIController.h" />
     <ClInclude Include="Clickable.h" />
+    <ClInclude Include="PopulationController.h" />
     <ClInclude Include="Tower.h" />
     <ClInclude Include="TowerAndMonsterController.h" />
     <ClInclude Include="TowerButton.h" />
@@ -149,6 +151,7 @@
   <ItemGroup>
     <ClCompile Include="AIController.cpp" />
     <ClCompile Include="Clickable.cpp" />
+    <ClCompile Include="PopulationController.cpp" />
     <ClCompile Include="Tower.cpp" />
     <ClCompile Include="TowerAndMonsterController.cpp" />
     <ClCompile Include="TowerButton.cpp" />

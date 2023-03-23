@@ -1,8 +1,11 @@
 #pragma once
-#include <deque>
-#include <utility>
+#include <iostream>
 #include <fstream>
 #include <cassert>
+#include <vector>
+#include <utility>
+#include <deque>
+
 #include "Tower.h"
 
 //Replay mode finds the most recent pop and showcases the result without running the genetic algorithm
@@ -19,7 +22,7 @@ enum CrossoverMethod
 	Uniform
 };
 
-#define POPULATION_SIZE 15;
+#define POPULATION_COUNT 15
 
 //Defines the chosen selection method
 #define SELECTION Tournament
@@ -38,8 +41,8 @@ enum CrossoverMethod
 typedef std::pair<TowerType, sf::Vector2i> TowerInPosition;
 struct PopulationMember
 {
-	explicit PopulationMember(int p_id, std::deque<TowerInPosition> p_towerQueue) : id(p_id), towerQueue(p_towerQueue) {}
-	int id;
+	PopulationMember(std::deque<TowerInPosition> p_towerQueue, int p_score) : towerQueue(p_towerQueue), score(p_score) {}
+	PopulationMember() { towerQueue = std::deque<TowerInPosition>(); }
 	std::deque<TowerInPosition> towerQueue;
 	int score = 0;
 };
@@ -81,8 +84,11 @@ private:
 private:
 	//Finds the current generation number and loads the population
 	bool Initialize();
+
+	std::vector<PopulationMember> GenerateIntialPopulation();
+
 	//Loads a population from a file
-	std::vector<PopulationMember> LoadPopulation(ifstream& populationFile);
+	std::vector<PopulationMember> LoadPopulation(std::ifstream& populationFile);
 
 	//Saves the current population to a file
 	void ExportCurrentPopulation();
