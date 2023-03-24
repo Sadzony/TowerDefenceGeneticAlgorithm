@@ -23,7 +23,7 @@ public:
 	void setTimer(Timer* timer) { m_Timer = timer; }
 	void setGameState(GameState* gameState) { m_gameState = gameState; }
 	void update();
-	void addTower(TowerType type, int gridx, int gridy);
+	bool addTower(TowerType type, int gridx, int gridy);
 	void gameOver();
 
 	PopulationMember outputGene();

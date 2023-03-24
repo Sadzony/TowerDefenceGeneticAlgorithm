@@ -32,14 +32,16 @@ private:
 	TowerController* towerController;
 	int width;
 
-	// Helper functions
-	bool gridSpaceAvailable(int gridX, int gridY);
-	bool towerIsPurchasable(TowerType type);
+
 
 public:
 	GameBoard(GameState* gameState, TowerController* towerController,
 			int widthInPixels);
 	~GameBoard();
+
+	// Helper functions
+	bool gridSpaceAvailable(int gridX, int gridY);
+	bool towerIsPurchasable(TowerType type);
 
 	bool validatePos(int mouseX, int mouseY, int range);
 	void process(sf::Event event, sf::Vector2i mousePos);
@@ -52,13 +54,16 @@ public:
 	bool addTower(TowerType type, int gridX, int gridY);
 
 	//Breadth search around a tile in a random direction
-	sf::Vector2i FindClosestAvailableTile(sf::Vector2i gridPos, int depth = 0);
+	sf::Vector2i FindClosestAvailableTile(sf::Vector2i gridPos);
 
 	//Controlled Breadth search around a tile
-	sf::Vector2i FindClosestAvailableTile(sf::Vector2i gridPos, BreadthSearchStartTile searchStart, BreadthSearchDirection searchDirection, int depth = 0);
+	sf::Vector2i FindClosestAvailableTile(sf::Vector2i gridPos, BreadthSearchStartTile searchStart, BreadthSearchDirection searchDirection);
 
-	//Heuristic Aided Search for Crossover
-	sf::Vector2i FindClosestAvailableTile(sf::Vector2i gridPos, sf::Vector2i searchGoalPos, int depth = 0);
+	//Outputs the positions of neighbouring tiles
+	std::vector<sf::Vector2i> FindNeighbourPositions(sf::Vector2i gridPos);
+
+	//Outputs the positions of neighbouring tiles in a controlled direction
+	std::vector<sf::Vector2i> FindNeighbourPositions(sf::Vector2i gridPos, BreadthSearchStartTile searchStart, BreadthSearchDirection searchDirection);
 		
 
 	int gridStatus[32][18] = { 0 };

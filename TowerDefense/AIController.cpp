@@ -54,27 +54,36 @@ void AIController::update()
 
 	//GAManager::Instance()->Update(m_Timer->elapsedSeconds());
 
-	//// this might be useful? Monsters killed
-	//static int monstersKilled = 0;
-
-	//if (m_gameState->getMonsterEliminated() > monstersKilled)
-	//{
-	//	monstersKilled = m_gameState->getMonsterEliminated();
-	//}
+	//set next tower to empty tower
+	TowerInPosition nextTower = std::make_pair(TowerType::empty, sf::Vector2i());
 
 	//check queue for next tower
-	TowerInPosition nextTower;
 	if (!m_gene.towerQueue.empty())
 		nextTower = m_gene.towerQueue.front();
-	//otherwise make a random tower
+	//if queue is empty, make a random tower
 	else
 	{
 		//Find closest available tile around a random position
+		int xPos = rand() % 26;
+		int yPos = rand() % 18;
+		sf::Vector2i towerPos = m_gameBoard->FindClosestAvailableTile(sf::Vector2i(xPos, yPos));
+
+		//Randomize tower type
+		TowerType type = (TowerType)(rand() % 3 + 1);
+		nextTower = std::make_pair(type, towerPos);
+		m_gene.towerQueue.push_back(nextTower);
 	}
+	if (addTower(nextTower.first, nextTower.second.x, nextTower.second.y))
+	{
+		//If the tower was successfully placed, add it to log and pop it out of the queue.
+		towerLog.push_back(m_gene.towerQueue.front());
+		m_gene.towerQueue.pop_front();
+	}
+
 	recordScore();
 }
 
-void AIController::addTower(TowerType type, int gridx, int gridy)
+bool AIController::addTower(TowerType type, int gridx, int gridy)
 {
 	// grid position can be from 0,0 to 25,17
 	/*
@@ -82,7 +91,7 @@ void AIController::addTower(TowerType type, int gridx, int gridy)
 	empty, slammer, swinger, thrower };
 	*/
 
-	bool towerAdded = m_gameBoard->addTower(type, gridx, gridy);
+	return m_gameBoard->addTower(type, gridx, gridy);
 
 	// NOTE towerAdded might be false if the tower can't be placed in that position, is there isn't enough funds
 }

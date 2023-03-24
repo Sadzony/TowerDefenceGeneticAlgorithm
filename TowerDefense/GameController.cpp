@@ -6,6 +6,7 @@
 #include <string>		// String object
 #include <vector>		// Vector object
 #include <iostream>
+#include <random>
 
 #include "PopulationController.h"
 
@@ -167,6 +168,279 @@ bool GameBoard::addTower(TowerType type, int gridX, int gridY)
 	}
 
 	return false;
+}
+
+sf::Vector2i GameBoard::FindClosestAvailableTile(sf::Vector2i gridPos)
+{
+	BreadthSearchStartTile randomStartTile = (BreadthSearchStartTile)(rand() % 4);
+	BreadthSearchDirection randomDirection = (BreadthSearchDirection)(rand() % 2);
+	return FindClosestAvailableTile(gridPos, randomStartTile, randomDirection);
+}
+
+sf::Vector2i GameBoard::FindClosestAvailableTile(sf::Vector2i gridPos, BreadthSearchStartTile searchStart, BreadthSearchDirection searchDirection)
+{
+	//Stores the visited positions
+	std::unordered_map<int, std::unordered_map<int, bool>> visitMap;
+	
+	//Sorts the search into an order
+	std::deque<sf::Vector2i> searchQueue;
+
+	//Push start nodes into the data structures
+	visitMap[gridPos.x][gridPos.y] = true;
+	searchQueue.push_back(gridPos);
+
+	//Search. Break when found a suitable node
+	while (!searchQueue.empty())
+	{
+		//Get search position and remove from queue
+		sf::Vector2i searchPos = searchQueue.front();
+		searchQueue.pop_front();
+		//Check if the tower fits in this position, and return it if it does
+		if(gridSpaceAvailable(searchPos.x, searchPos.y))
+			return searchPos;
+
+		//Get neighbours
+		std::vector<sf::Vector2i> neighbours = FindNeighbourPositions(searchPos, searchStart, searchDirection);
+		for (sf::Vector2i neighbourPosition : neighbours)
+		{
+			//Check that the neighbour wasn't already visited
+			if (visitMap.find(neighbourPosition.x) == visitMap.end() && visitMap[neighbourPosition.x].find(neighbourPosition.y) == visitMap[neighbourPosition.x].end())
+			{
+				//Visit the unvisited neighbour, and add it onto the search queue
+				visitMap[neighbourPosition.x][neighbourPosition.y] = true;
+				searchQueue.push_back(neighbourPosition);
+			}
+		}
+	}
+}
+
+std::vector<sf::Vector2i> GameBoard::FindNeighbourPositions(sf::Vector2i gridPos)
+{
+	BreadthSearchStartTile randomStartTile = (BreadthSearchStartTile)(rand() % 4);
+	BreadthSearchDirection randomDirection = (BreadthSearchDirection)(rand() % 2);
+	return FindNeighbourPositions(gridPos, randomStartTile, randomDirection);
+}
+
+std::vector<sf::Vector2i> GameBoard::FindNeighbourPositions(sf::Vector2i gridPos, BreadthSearchStartTile searchStart, BreadthSearchDirection searchDirection)
+{
+	std::vector<sf::Vector2i> neighbourPositions = std::vector<sf::Vector2i>();
+	if (searchStart == BreadthSearchStartTile::LEFT)
+	{
+		//Add left Neighbour
+		if (gridPos.x - 1 >= 0)
+			neighbourPositions.push_back(gridPos + sf::Vector2i(-1, 0));
+		if (searchDirection == BreadthSearchDirection::CLOCKWISE)
+		{
+			//Add top left
+			if(gridPos.x - 1 >= 0 && gridPos.y + 1 < 18)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(-1, 1));
+			//Add top
+			if (gridPos.y + 1 < 18)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(0, 1));
+			//Add top right
+			if(gridPos.x + 1 < 26 && gridPos.y + 1 < 18)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(1, 1));
+			//Add right
+			if (gridPos.x + 1 < 26)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(1, 0));
+			//Add bottom right
+			if (gridPos.x + 1 < 26 && gridPos.y -1 >= 0)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(1, -1));
+			//Add bottom
+			if (gridPos.y - 1 >= 0)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(0, -1));
+			//Add bottom left
+			if (gridPos.x - 1 >= 0 && gridPos.y - 1 >= 0)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(-1, -1));
+		}
+		else if (searchDirection == BreadthSearchDirection::ANTICLOCKWISE)
+		{
+			//Add bottom left
+			if (gridPos.x - 1 >= 0 && gridPos.y - 1 >= 0)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(-1, -1));
+			//Add bottom
+			if (gridPos.y - 1 >= 0)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(0, -1));
+			//Add bottom right
+			if (gridPos.x + 1 < 26 && gridPos.y - 1 >= 0)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(1, -1));
+			//Add right
+			if (gridPos.x + 1 < 26)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(1, 0));
+			//Add top right
+			if (gridPos.x + 1 < 26 && gridPos.y + 1 < 18)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(1, 1));
+			//Add top
+			if (gridPos.y + 1 < 18)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(0, 1));
+			//Add top left
+			if (gridPos.x - 1 >= 0 && gridPos.y + 1 < 18)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(-1, 1));
+		}
+	}
+	else if (searchStart == BreadthSearchStartTile::UP)
+	{
+		//Add top Neighbour
+		if (gridPos.y + 1 < 18)
+			neighbourPositions.push_back(gridPos + sf::Vector2i(0, 1));
+		if (searchDirection == BreadthSearchDirection::CLOCKWISE)
+		{
+			//Add top right
+			if (gridPos.x + 1 < 26 && gridPos.y + 1 < 18)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(1, 1));
+			//Add right
+			if (gridPos.x + 1 < 26)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(1, 0));
+			//Add bottom right
+			if (gridPos.x + 1 < 26ws && gridPos.y - 1 >= 0)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(1, -1));
+			//Add bottom
+			if (gridPos.y - 1 >= 0)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(0, -1));
+			//Add bottom left
+			if (gridPos.x - 1 >= 0 && gridPos.y - 1 >= 0)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(-1, -1));
+			//Add left
+			if (gridPos.x - 1 >= 0)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(-1, 0));
+			//Add top left
+			if (gridPos.x - 1 >= 0 && gridPos.y + 1 < 18)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(-1, 1));
+		}
+		else if (searchDirection == BreadthSearchDirection::ANTICLOCKWISE)
+		{
+			//Add top left
+			if (gridPos.x - 1 >= 0 && gridPos.y + 1 < 18)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(-1, 1));
+			//Add left
+			if (gridPos.x - 1 >= 0)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(-1, 0));
+			//Add bottom left
+			if (gridPos.x - 1 >= 0 && gridPos.y - 1 >= 0)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(-1, -1));
+			//Add bottom
+			if (gridPos.y - 1 >= 0)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(0, -1));
+			//Add bottom right
+			if (gridPos.x + 1 < 26 && gridPos.y - 1 >= 0)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(1, -1));
+			//Add right
+			if (gridPos.x + 1 < 26)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(1, 0));
+			//Add top right
+			if (gridPos.x + 1 < 26 && gridPos.y + 1 < 18)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(1, 1));
+		}
+	}
+	else if (searchStart == BreadthSearchStartTile::RIGHT)
+	{
+		//Add right Neighbour
+		if (gridPos.x + 1 < 26)
+			neighbourPositions.push_back(gridPos + sf::Vector2i(1, 0));
+		if (searchDirection == BreadthSearchDirection::CLOCKWISE)
+		{
+			//Add bottom right
+			if (gridPos.x + 1 < 26 && gridPos.y - 1 >= 0)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(1, -1));
+			//Add bottom
+			if (gridPos.y - 1 >= 0)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(0, -1));
+			//Add bottom left
+			if (gridPos.x - 1 >= 0 && gridPos.y - 1 >= 0)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(-1, -1));
+			//Add left
+			if (gridPos.x - 1 >= 0)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(-1, 0));
+			//Add top left
+			if (gridPos.x - 1 >= 0 && gridPos.y + 1 < 18)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(-1, 1));
+			//Add top
+			if (gridPos.y + 1 < 18)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(0, 1));
+			//Add top right
+			if (gridPos.x + 1 < 26 && gridPos.y + 1 < 18)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(1, 1));
+		}
+		else if (searchDirection == BreadthSearchDirection::ANTICLOCKWISE)
+		{
+			//Add top right
+			if (gridPos.x + 1 < 26 && gridPos.y + 1 < 18)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(1, 1));
+			//Add top
+			if (gridPos.y + 1 < 18)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(0, 1));
+			//Add top left
+			if (gridPos.x - 1 >= 0 && gridPos.y + 1 < 18)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(-1, 1));
+			//Add left
+			if (gridPos.x - 1 >= 0)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(-1, 0));
+			//Add bottom left
+			if (gridPos.x - 1 >= 0 && gridPos.y - 1 >= 0)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(-1, -1));
+			//Add bottom
+			if (gridPos.y - 1 >= 0)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(0, -1));
+			//Add bottom right
+			if (gridPos.x + 1 < 26 && gridPos.y - 1 >= 0)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(1, -1));
+		}
+	}
+	else if (searchStart == BreadthSearchStartTile::DOWN)
+	{
+		//add bottom neighbour
+		if (gridPos.y - 1 >= 0)
+			neighbourPositions.push_back(gridPos + sf::Vector2i(0, -1));
+		if (searchDirection == BreadthSearchDirection::CLOCKWISE)
+		{
+			//Add bottom left
+			if (gridPos.x - 1 >= 0 && gridPos.y - 1 >= 0)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(-1, -1));
+			//Add left
+			if (gridPos.x - 1 >= 0)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(-1, 0));
+			//Add top left
+			if (gridPos.x - 1 >= 0 && gridPos.y + 1 < 18)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(-1, 1));
+			//Add top
+			if (gridPos.y + 1 < 18)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(0, 1));
+			//Add top right
+			if (gridPos.x + 1 < 26 && gridPos.y + 1 < 18)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(1, 1));
+			//Add right
+			if (gridPos.x + 1 < 26)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(1, 0));
+			//Add bottom right
+			if (gridPos.x + 1 < 26 && gridPos.y - 1 >= 0)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(1, -1));
+		}
+		else if (searchDirection == BreadthSearchDirection::ANTICLOCKWISE)
+		{
+			//Add bottom right
+			if (gridPos.x + 1 < 26 && gridPos.y - 1 >= 0)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(1, -1));
+			//Add right
+			if (gridPos.x + 1 < 26)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(1, 0));
+			//Add top right
+			if (gridPos.x + 1 < 26 && gridPos.y + 1 < 18)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(1, 1));
+			//Add top
+			if (gridPos.y + 1 < 18)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(0, 1));
+			//Add top left
+			if (gridPos.x - 1 >= 0 && gridPos.y + 1 < 18)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(-1, 1));
+			//Add left
+			if (gridPos.x - 1 >= 0)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(-1, 0));
+			//Add bottom left
+			if (gridPos.x - 1 >= 0 && gridPos.y - 1 >= 0)
+				neighbourPositions.push_back(gridPos + sf::Vector2i(-1, -1));
+		}
+	}
+	return neighbourPositions;
 }
 
 // Determine if any action needs ton be taken by
@@ -352,6 +626,8 @@ void resetGame(Timer** clk, GameState** gameState, GameMenuController** gameMenu
 // Main
 int main() {
 // Initialization
+	//Get a seed
+	std::srand(time(NULL));
 	debug = false;
 	sf::RenderWindow* window = new sf::RenderWindow(sf::VideoMode(1920, 1080), "Monster Defence", sf::Style::Close);
 	window->setFramerateLimit(60);
