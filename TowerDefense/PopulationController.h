@@ -4,9 +4,11 @@
 #include <cassert>
 #include <vector>
 #include <utility>
-#include <deque>
 
-#include "Tower.h"
+#include "nlohmann/json.hpp"
+using json = nlohmann::json;
+
+#include "PopulationMember.h"
 
 //Replay mode finds the most recent pop and showcases the result without running the genetic algorithm
 #define REPLAY_MODE true
@@ -38,15 +40,6 @@ enum CrossoverMethod
 //Percentage of offspring that undergoes mutation
 #define MUTATION_RATE 0.05f
 
-typedef std::pair<TowerType, sf::Vector2i> TowerInPosition;
-struct PopulationMember
-{
-	PopulationMember(std::deque<TowerInPosition> p_towerQueue, int p_score) : towerQueue(p_towerQueue), score(p_score) {}
-	PopulationMember() { towerQueue = std::deque<TowerInPosition>(); }
-	std::deque<TowerInPosition> towerQueue;
-	int score = 0;
-};
-
 class PopulationController
 {
 	//Singleton pattern
@@ -67,18 +60,16 @@ private:
 //Get sets
 public:
 	//Returns a copy of the population list
-	std::vector<PopulationMember> GetPopulation() { return std::vector<PopulationMember>(currentPopulation); }
+	std::vector<PopulationMember> GetPopulation() { return std::vector<PopulationMember>(population); }
 
-	void SetScore(int index, int score) { currentPopulation.at(index).score = score; }
+	void UpdateMember(int index, PopulationMember update) { population.at(index) = update; }
 
 //Member variables
 private:
 	//The number of generations that have come before this one
 	int generationNumber = 0;
-	//The population used for the genetic algorithm
-	std::vector<PopulationMember> inputPopulation;
 	//The population that is currently being worked on
-	std::vector<PopulationMember> currentPopulation;
+	std::vector<PopulationMember> population;
 
 //Functions
 private:
@@ -87,8 +78,12 @@ private:
 
 	std::vector<PopulationMember> GenerateIntialPopulation();
 
-	//Loads a population from a file
-	std::vector<PopulationMember> LoadPopulation(std::ifstream& populationFile);
+	//Loads a population from a json object
+	std::vector<PopulationMember> LoadPopulation(json populationObject);
+
+public:
+	//Takes the current population, and outputs the genetically modified offspring
+	std::vector<PopulationMember> NextEpoch();
 
 	//Saves the current population to a file
 	void ExportCurrentPopulation();

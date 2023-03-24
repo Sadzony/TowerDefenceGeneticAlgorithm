@@ -132,8 +132,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AIController.h" />
+    <ClInclude Include="BreadthSearchDirections.h" />
     <ClInclude Include="Clickable.h" />
     <ClInclude Include="PopulationController.h" />
+    <ClInclude Include="PopulationMember.h" />
     <ClInclude Include="Tower.h" />
     <ClInclude Include="TowerAndMonsterController.h" />
     <ClInclude Include="TowerButton.h" />

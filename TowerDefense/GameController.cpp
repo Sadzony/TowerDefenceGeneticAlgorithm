@@ -7,6 +7,8 @@
 #include <vector>		// Vector object
 #include <iostream>
 
+#include "PopulationController.h"
+
 #include "GameController.h"
 #include "GameMenuController.h"
 #include "MonsterController.h"
@@ -16,6 +18,8 @@
 #include "GameState.h"
 #include "Timer.h"
 #include "AIController.h"
+
+
 
 using sf::Vector2f;
 using std::cout;
@@ -183,15 +187,15 @@ void GameBoard::process(sf::Event event, sf::Vector2i mousePos) {
 		// If an open space exists, fill the board with twos.
 		addTower(type, gridX, gridY);
 		//PRINT BOARD
-		if (debug) {
-			for (int i = 0; i < 18; i++) {
-				for (int j = 0; j < 32; j++) {
-					std::cout << gridStatus[j][i] << " ";
-				}
-				std::cout << std::endl;
-			}
-			std::cout << std::endl;
-		}
+		//if (debug) {
+		//	for (int i = 0; i < 18; i++) {
+		//		for (int j = 0; j < 32; j++) {
+		//			std::cout << gridStatus[j][i] << " ";
+		//		}
+		//		std::cout << std::endl;
+		//	}
+		//	std::cout << std::endl;
+		//}
 	}
 }
 
@@ -354,6 +358,9 @@ int main() {
 	//window->setFramerateLimit(0);
 	//window->setVerticalSyncEnabled(false);
 
+	std::vector<PopulationMember> population = PopulationController::getInstance()->GetPopulation();
+	int populationIndex = 0;
+
 	AIController aIController;
 	
 	Timer* clk;
@@ -368,6 +375,7 @@ int main() {
 	aIController.setGameBoard(gameBoard);
 	aIController.setTimer(clk);
 	aIController.setGameState(gameState);
+	aIController.setGene(population.at(populationIndex));
 	aIController.setupBoard();
 
 	
@@ -455,13 +463,32 @@ int main() {
 
 		if (gameState->getHealth() <= 0) {
 			clk->stop();
+			
+			//Output the modified gene into the population
+			PopulationController::getInstance()->UpdateMember(populationIndex, aIController.outputGene());
+			population = PopulationController::getInstance()->GetPopulation();
 			aIController.gameOver();
 			//deathLoop(window, gameBoard->event);
+
+			//Get next population member
+			if (populationIndex + 1 < POPULATION_COUNT)
+				populationIndex++;
+			//If no more members, go to next epoch, or restart the replay
+			else
+			{
+				#if REPLAY_MODE == false
+				PopulationController::getInstance()->ExportCurrentPopulation();
+				population = PopulationController::getInstance()->NextEpoch();
+				#endif
+				populationIndex = 0;
+			}
+
 			cleanGame(&clk, &gameState, &gameMenuController, &towerController, &monsterController, &gameBoard, &attackController);
 			resetGame(&clk, &gameState, &gameMenuController, &towerController, &monsterController, &gameBoard, &attackController, window);
 			aIController.setGameBoard(gameBoard);
 			aIController.setTimer(clk);
 			aIController.setGameState(gameState);
+			aIController.setGene(population.at(populationIndex));
 			aIController.setupBoard();
 			//return 0;
 		}

@@ -96,6 +96,12 @@
     <ClInclude Include="PopulationController.h">
       <Filter>AI Code</Filter>
     </ClInclude>
+    <ClInclude Include="PopulationMember.h">
+      <Filter>AI Code</Filter>
+    </ClInclude>
+    <ClInclude Include="BreadthSearchDirections.h">
+      <Filter>Game Source</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Game Headers">

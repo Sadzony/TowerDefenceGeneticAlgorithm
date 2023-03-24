@@ -8,7 +8,7 @@
 #include "GameState.h"
 #include "Tower.h"
 #include "TowerController.h"
-
+#include "BreadthSearchDirections.h"
 
 // Game Controller keeps all Game State Variables Running and Updated
 class GameController {
@@ -51,6 +51,16 @@ public:
 
 	bool addTower(TowerType type, int gridX, int gridY);
 
+	//Breadth search around a tile in a random direction
+	sf::Vector2i FindClosestAvailableTile(sf::Vector2i gridPos, int depth = 0);
+
+	//Controlled Breadth search around a tile
+	sf::Vector2i FindClosestAvailableTile(sf::Vector2i gridPos, BreadthSearchStartTile searchStart, BreadthSearchDirection searchDirection, int depth = 0);
+
+	//Heuristic Aided Search for Crossover
+	sf::Vector2i FindClosestAvailableTile(sf::Vector2i gridPos, sf::Vector2i searchGoalPos, int depth = 0);
+		
+
 	int gridStatus[32][18] = { 0 };
 
 	sf::Texture* _helpTexture;
@@ -66,8 +76,4 @@ public:
 	sf::Text tamText, waveText, waveWord, healthText, text, scoreText;
 	sf::Font font;
 	sf::Event event;
-
-	
-
-	
 };

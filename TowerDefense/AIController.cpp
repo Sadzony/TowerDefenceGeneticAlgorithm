@@ -11,6 +11,7 @@ double g_elapsedSeconds = 0;
 
 AIController::AIController()
 {
+	m_gene = PopulationMember();
 	m_gameController = nullptr;
 	m_gameBoard = nullptr;
 	m_Timer = nullptr;
@@ -26,6 +27,14 @@ AIController::~AIController()
 void AIController::gameOver()
 {
 	g_elapsedSeconds = 0;
+	towerLog.clear();
+}
+
+PopulationMember AIController::outputGene()
+{
+	m_gene.score = m_gameState->getScore();
+	m_gene.towerQueue = std::deque<TowerInPosition>(towerLog);
+	return m_gene;
 }
 
 void AIController::update()
@@ -45,14 +54,23 @@ void AIController::update()
 
 	//GAManager::Instance()->Update(m_Timer->elapsedSeconds());
 
-	// this might be useful? Monsters killed
-	static int monstersKilled = 0;
+	//// this might be useful? Monsters killed
+	//static int monstersKilled = 0;
 
-	if (m_gameState->getMonsterEliminated() > monstersKilled)
+	//if (m_gameState->getMonsterEliminated() > monstersKilled)
+	//{
+	//	monstersKilled = m_gameState->getMonsterEliminated();
+	//}
+
+	//check queue for next tower
+	TowerInPosition nextTower;
+	if (!m_gene.towerQueue.empty())
+		nextTower = m_gene.towerQueue.front();
+	//otherwise make a random tower
+	else
 	{
-		monstersKilled = m_gameState->getMonsterEliminated();
+		//Find closest available tile around a random position
 	}
-
 	recordScore();
 }
 
@@ -84,9 +102,9 @@ int AIController::recordScore()
 	static int iteration = 0;
 
 	if (iteration == 0)
-		cout << "iteration" << "," << "wave" << "," << "kills" << "," << "score" << endl;
+		//cout << "iteration" << "," << "wave" << "," << "kills" << "," << "score" << endl;
 
-	cout << iteration << "," << m_gameState->getCurrentWave() << "," << m_gameState->getMonsterEliminated() << "," << score << endl;
+	//cout << iteration << "," << m_gameState->getCurrentWave() << "," << m_gameState->getMonsterEliminated() << "," << score << endl;
 	iteration++;
 
 	m_gameState->setScore(score);
