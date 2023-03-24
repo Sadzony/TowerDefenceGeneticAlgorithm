@@ -30,6 +30,8 @@ private:
 	int MonsterEliminated = 0;
 	int score = 0;
 
+	int populationIndex = 0;
+
 	TowerType purchaseTower = TowerType::empty;
 	// This is used by the upgrade button
 	Tower* boardTower = nullptr;
@@ -59,6 +61,9 @@ public:
 	void setPurchaseTower(TowerType towerType);
 	Tower* getBoardTower();
 	void setBoardTower(Tower* tower);
+
+	void setPopIndex(int p_index) { populationIndex = p_index; }
+	int getPopIndex() { return populationIndex; }
 
 	std::map<string, int> getTowerProps(TowerType type);
 	std::map<string, int> getMonsterProps(MonsterType type);

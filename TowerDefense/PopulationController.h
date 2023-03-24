@@ -65,6 +65,8 @@ public:
 
 	void UpdateMember(int index, PopulationMember update) { population.at(index) = update; }
 
+	int GetGenerationNumber() { return generationNumber; }
+
 //Member variables
 private:
 	//The number of generations that have come before this one

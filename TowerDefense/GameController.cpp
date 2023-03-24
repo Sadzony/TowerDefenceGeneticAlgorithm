@@ -58,6 +58,8 @@ GameBoard::GameBoard(GameState* _gameState, TowerController* _towerController,
 		scoreText.setFont(font);
 		healthText.setFont(font);
 		waveWord.setFont(font);
+		generationText.setFont(font);
+		popIndexText.setFont(font);
 	}
 
 	_menuTexture = new sf::Texture;
@@ -93,8 +95,13 @@ GameBoard::GameBoard(GameState* _gameState, TowerController* _towerController,
 	scoreText.setString(std::to_string(gameState->getScore()));
 	healthText.setString(std::to_string(100));
 	waveWord.setString("Wave");
+
+	generationText.setString("Generation: " + std::to_string(0));
+	popIndexText.setString("Population Member: " + std::to_string(1));
+
 	tamText.setPosition(220, 60);
 	tamText.setCharacterSize(58);
+
 	waveText.setPosition(820, 70);
 	waveText.setCharacterSize(58);
 
@@ -103,8 +110,14 @@ GameBoard::GameBoard(GameState* _gameState, TowerController* _towerController,
 
 	healthText.setPosition(1250, 60);
 	healthText.setCharacterSize(58);
+
 	waveWord.setPosition(625, 85);
 	waveWord.setCharacterSize(40);
+
+	generationText.setPosition(10, 970);
+	popIndexText.setPosition(10, 1005);
+	generationText.setCharacterSize(35);
+	popIndexText.setCharacterSize(35);
 
 	// Grass Tile Objects
 	grassTile = sf::RectangleShape(sf::Vector2f(60, 60));
@@ -292,7 +305,7 @@ std::vector<sf::Vector2i> GameBoard::FindNeighbourPositions(sf::Vector2i gridPos
 			if (gridPos.x + 1 < 26)
 				neighbourPositions.push_back(gridPos + sf::Vector2i(1, 0));
 			//Add bottom right
-			if (gridPos.x + 1 < 26ws && gridPos.y - 1 >= 0)
+			if (gridPos.x + 1 < 26 && gridPos.y - 1 >= 0)
 				neighbourPositions.push_back(gridPos + sf::Vector2i(1, -1));
 			//Add bottom
 			if (gridPos.y - 1 >= 0)
@@ -544,6 +557,8 @@ void GameBoard::renderLabels(sf::RenderWindow* window) {
 	window->draw(scoreText);
 	window->draw(healthText);
 	window->draw(waveWord);
+	window->draw(generationText);
+	window->draw(popIndexText);
 }
 
 // Draw Range
@@ -635,6 +650,7 @@ int main() {
 	//window->setVerticalSyncEnabled(false);
 
 	std::vector<PopulationMember> population = PopulationController::getInstance()->GetPopulation();
+
 	int populationIndex = 0;
 
 	AIController aIController;
@@ -650,6 +666,7 @@ int main() {
 	//m_AIController.setGameController() 
 	aIController.setGameBoard(gameBoard);
 	aIController.setTimer(clk);
+	gameState->setPopIndex(populationIndex);
 	aIController.setGameState(gameState);
 	aIController.setGene(population.at(populationIndex));
 	aIController.setupBoard();
@@ -716,9 +733,10 @@ int main() {
 			gameBoard->waveText.setString(std::to_string(gameState->getCurrentWave()));
 			gameBoard->healthText.setString(std::to_string(gameState->getHealth()));
 			gameBoard->tamText.setString(std::to_string(gameState->getTams()));
+			gameBoard->generationText.setString("Generation: " + std::to_string(PopulationController::getInstance()->GetGenerationNumber()));
+			gameBoard->popIndexText.setString("Population Member: " + std::to_string(gameState->getPopIndex() + 1));
 			gameState->dirtyBit = false;
 		}
-
 		// Render
 		window->clear();
 		gameBoard->render(window);
@@ -752,8 +770,8 @@ int main() {
 			//If no more members, go to next epoch, or restart the replay
 			else
 			{
-				#if REPLAY_MODE == false
 				PopulationController::getInstance()->ExportCurrentPopulation();
+				#if REPLAY_MODE == false
 				population = PopulationController::getInstance()->NextEpoch();
 				#endif
 				populationIndex = 0;
@@ -763,6 +781,7 @@ int main() {
 			resetGame(&clk, &gameState, &gameMenuController, &towerController, &monsterController, &gameBoard, &attackController, window);
 			aIController.setGameBoard(gameBoard);
 			aIController.setTimer(clk);
+			gameState->setPopIndex(populationIndex);
 			aIController.setGameState(gameState);
 			aIController.setGene(population.at(populationIndex));
 			aIController.setupBoard();
