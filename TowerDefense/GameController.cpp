@@ -206,7 +206,9 @@ sf::Vector2i GameBoard::FindClosestAvailableTile(sf::Vector2i gridPos, BreadthSe
 	while (!searchQueue.empty())
 	{
 		//Get search position and remove from queue
-		sf::Vector2i searchPos = searchQueue.front();
+		int x = searchQueue.front().x;
+		int y = searchQueue.front().y;
+		sf::Vector2i searchPos = sf::Vector2i(x, y);
 		searchQueue.pop_front();
 		//Check if the tower fits in this position, and return it if it does
 		if(gridSpaceAvailable(searchPos.x, searchPos.y))
@@ -217,7 +219,7 @@ sf::Vector2i GameBoard::FindClosestAvailableTile(sf::Vector2i gridPos, BreadthSe
 		for (sf::Vector2i neighbourPosition : neighbours)
 		{
 			//Check that the neighbour wasn't already visited
-			if (visitMap.find(neighbourPosition.x) == visitMap.end() && visitMap[neighbourPosition.x].find(neighbourPosition.y) == visitMap[neighbourPosition.x].end())
+			if (!(visitMap.find(neighbourPosition.x) != visitMap.end() && visitMap[neighbourPosition.x].find(neighbourPosition.y) != visitMap[neighbourPosition.x].end()))
 			{
 				//Visit the unvisited neighbour, and add it onto the search queue
 				visitMap[neighbourPosition.x][neighbourPosition.y] = true;

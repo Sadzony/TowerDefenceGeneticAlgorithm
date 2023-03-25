@@ -6,6 +6,8 @@
 
 #include "GameController.h"
 
+#define AI_CONTROL true
+
 using namespace std;
 double g_elapsedSeconds = 0;
 
@@ -54,6 +56,8 @@ void AIController::update()
 
 	//GAManager::Instance()->Update(m_Timer->elapsedSeconds());
 
+
+	#if AI_CONTROL == true
 	//set next tower to empty tower
 	TowerInPosition nextTower = std::make_pair(TowerType::empty, sf::Vector2i());
 
@@ -73,12 +77,9 @@ void AIController::update()
 		nextTower = std::make_pair(type, towerPos);
 		m_gene.towerQueue.push_back(nextTower);
 	}
-	if (addTower(nextTower.first, nextTower.second.x, nextTower.second.y))
-	{
+	addTower(nextTower.first, nextTower.second.x, nextTower.second.y);
 		//If the tower was successfully placed, add it to log and pop it out of the queue.
-		towerLog.push_back(m_gene.towerQueue.front());
-		m_gene.towerQueue.pop_front();
-	}
+	#endif
 
 	recordScore();
 }
@@ -91,8 +92,14 @@ bool AIController::addTower(TowerType type, int gridx, int gridy)
 	empty, slammer, swinger, thrower };
 	*/
 
-	return m_gameBoard->addTower(type, gridx, gridy);
-
+	bool towerAdded = m_gameBoard->addTower(type, gridx, gridy);
+	if (towerAdded)
+	{
+		towerLog.push_back(m_gene.towerQueue.front());
+		if(!m_gene.towerQueue.empty())
+			m_gene.towerQueue.pop_front();
+	}
+	return towerAdded;
 	// NOTE towerAdded might be false if the tower can't be placed in that position, is there isn't enough funds
 }
 
