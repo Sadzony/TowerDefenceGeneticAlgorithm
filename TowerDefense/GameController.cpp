@@ -767,7 +767,7 @@ int main() {
 			//deathLoop(window, gameBoard->event);
 
 			//Get next population member
-			if (populationIndex + 1 < POPULATION_COUNT)
+			if (populationIndex + 1 < population.size())
 				populationIndex++;
 			//If no more members, go to next epoch, or restart the replay
 			else

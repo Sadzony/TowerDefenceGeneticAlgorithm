@@ -40,7 +40,7 @@ bool PopulationController::Initialize()
 std::vector<PopulationMember> PopulationController::GenerateIntialPopulation()
 {
 	std::vector<PopulationMember> population;
-	for (int i = 0; i < POPULATION_COUNT; i++)
+	for (int i = 0; i < INITIAL_POPULATION_COUNT; i++)
 	{
 		population.push_back(PopulationMember());
 	}
@@ -49,7 +49,56 @@ std::vector<PopulationMember> PopulationController::GenerateIntialPopulation()
 
 std::vector<PopulationMember> PopulationController::LoadPopulation(nlohmann::json populationObject)
 {
-	return std::vector<PopulationMember>();
+	//Initialize list
+	std::vector<PopulationMember> loadedPopulation = std::vector<PopulationMember>();
+
+	//iterate genes
+	for (const auto& gene : populationObject.items())
+	{
+		//Gene1, Gene2...
+
+		//Initialize variables
+		int score = 0;
+		std::deque<TowerInPosition> towerQueue = std::deque<TowerInPosition>();
+
+		//iterate data
+		for (const auto& geneData : gene.value().items())
+		{
+			//Score, Towers
+
+			//Get score
+			if (geneData.key() == "Score")
+				score = geneData.value();
+			
+			//Get chromosome
+			else if (geneData.key() == "Towers")
+			{
+				//Iterate chromosome
+				for (const auto& chromosome : geneData.value().items())
+				{
+					//Tower1, tower2....
+					TowerType nextType = TowerType::empty;
+					int nextX = -1;
+					int nextY = -1;
+					//iterate tower data
+					for (const auto& towerData : chromosome.value().items())
+					{
+						if (towerData.key() == "Type")
+							nextType = (TowerType)towerData.value();
+						else if (towerData.key() == "X")
+							nextX = towerData.value();
+						else if (towerData.key() == "Y")
+							nextY = towerData.value();
+					}
+					//Add tower to queue
+					towerQueue.push_back(std::make_pair(nextType, sf::Vector2i(nextX, nextY)));
+				}
+			}
+		}
+		//Add gene to list
+		loadedPopulation.push_back(PopulationMember(towerQueue, score));
+	}
+	return loadedPopulation;
 }
 
 
@@ -57,7 +106,7 @@ std::vector<PopulationMember> PopulationController::NextEpoch()
 {
 	generationNumber++;
 	//population = ??
-	return population;
+	return std::vector<PopulationMember>(population);
 }
 
 void PopulationController::ExportCurrentPopulation()
@@ -66,7 +115,7 @@ void PopulationController::ExportCurrentPopulation()
 	json populationData;
 	
 	//iterate each gene in population
-	for (int i = 0; i < POPULATION_COUNT; i++)
+	for (int i = 0; i < INITIAL_POPULATION_COUNT; i++)
 	{
 		json geneData;
 		//Save score to a json data object

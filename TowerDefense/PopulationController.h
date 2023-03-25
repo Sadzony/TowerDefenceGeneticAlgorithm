@@ -25,7 +25,7 @@ enum CrossoverMethod
 	Uniform
 };
 
-#define POPULATION_COUNT 2
+#define INITIAL_POPULATION_COUNT 2
 
 //Defines the chosen selection method
 #define SELECTION Tournament
