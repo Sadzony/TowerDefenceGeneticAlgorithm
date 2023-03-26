@@ -8,4 +8,10 @@ struct PopulationMember
 	PopulationMember() { towerQueue = std::deque<TowerInPosition>(); }
 	std::deque<TowerInPosition> towerQueue;
 	int score = 0;
+
+	//Function used to sort the members Descending
+	static bool PopulationMemberComparison(const PopulationMember& first, const PopulationMember& second)
+	{
+		return (first.score > second.score);
+	}
 };

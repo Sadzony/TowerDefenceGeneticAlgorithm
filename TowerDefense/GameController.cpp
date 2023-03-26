@@ -726,8 +726,10 @@ int main() {
 		
 		if (clk->newTick()) {
 			//update
-			monsterController->update();
-			attackController->update();
+			for (int i = 0; i < GAME_SPEED; i++) {
+				monsterController->update();
+				attackController->update();
+			}
 		}
 
 		if (gameState->dirtyBit) {

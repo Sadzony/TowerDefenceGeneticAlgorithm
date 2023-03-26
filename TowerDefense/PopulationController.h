@@ -12,28 +12,34 @@ using json = nlohmann::json;
 #include "PopulationMember.h"
 
 //Replay mode finds the most recent pop and showcases the result without running the genetic algorithm
-#define REPLAY_MODE true
+#define REPLAY_MODE false
 
 enum SelectionMethod
 {
-	Tournament,
-	Roulette
+	TOURNAMENT = 0,
+	RANK = 1,
+	ROULETTE = 2
 };
 enum CrossoverMethod
 {
-	One_Point,
-	Uniform
+	ONE_POINT = 0,
+	UNIFORM = 1
 };
 
-#define INITIAL_POPULATION_COUNT 2
+#define POPULATION_COUNT 10
+
+#define MATING_POOL_COUNT 6
 
 //Defines the chosen selection method
-#define SELECTION Tournament
+#define SELECTION 1
+
+#define SELECTION_GROUP_SIZE 4
+
 //Turns elitist selection on and off
-#define ELITIST false
+#define ELITIST true
 
 //Defines the crossover method
-#define CROSSOVER Uniform
+#define CROSSOVER 1
 
 //Turns mutation on and off
 #define MUTATION false
