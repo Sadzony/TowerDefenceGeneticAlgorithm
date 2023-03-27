@@ -12,10 +12,27 @@ const std::vector<Vector2f> path = { Vector2f(15, 0), Vector2f(15, 4), Vector2f(
 PositionBoard::PositionBoard()
 {
 	//Load path into grid status
-	for (Vector2f pos : path)
-	{
-		sf::Vector2i intPos = sf::Vector2i(pos);
-		gridStatus[intPos.x][intPos.y] = 1;
+	for (unsigned int i = 0; i < path.size() - 1; i++) {
+		sf::Vector2i curr = sf::Vector2i(path[i]);		// Current Vector2f
+		sf::Vector2i next = sf::Vector2i(path[i + 1]);		// Next Vector2f
+		if (curr.x == next.x) { // If two Vector2fs vertical			
+			while (curr.y != next.y) {
+				if (curr.y < next.y)
+					curr.y++;		// Draw up or down until next Vector2f
+				else
+					curr.y--;
+				gridStatus[curr.x][curr.y] = 1;
+			}
+
+		} else if (curr.y == next.y) { // If two Vector2fs horizontal
+			while (curr.x != next.x) {
+				if (curr.x < next.x)
+					curr.x++;		// Draw left or right until next Vector2f
+				else
+					curr.x--;
+				gridStatus[curr.x][curr.y] = 1;
+			}
+		}
 	}
 }
 
@@ -41,6 +58,14 @@ bool PositionBoard::AddTower(sf::Vector2i gridPos)
 		return true;
 	}
 	return false;
+}
+
+void PositionBoard::RemoveTower(sf::Vector2i gridPos)
+{
+	gridStatus[gridPos.x][gridPos.y] = 0;
+	gridStatus[gridPos.x + 1][gridPos.y] = 0;
+	gridStatus[gridPos.x][gridPos.y + 1] = 0;
+	gridStatus[gridPos.x + 1][gridPos.y + 1] = 0;
 }
 
 sf::Vector2i PositionBoard::FindClosestAvailableTile(sf::Vector2i gridPos)

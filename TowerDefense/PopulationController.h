@@ -28,24 +28,28 @@ enum CrossoverMethod
 
 #define POPULATION_COUNT 15
 
-#define MATING_POOL_COUNT 8
+#define MATING_POOL_COUNT 6
 
 //Defines the chosen selection method
 #define SELECTION 0
 
-#define SELECTION_GROUP_SIZE 5
+//Used in tournament and rank
+#define SELECTION_GROUP_SIZE 4
 
 //Turns elitist selection on and off
 #define ELITIST true
 
 //Defines the crossover method
-#define CROSSOVER 0
+#define CROSSOVER 1
 
 //Turns mutation on and off
-#define MUTATION false
+#define MUTATION true
 
-//Percentage of offspring that undergoes mutation
-#define MUTATION_RATE 0.05f
+//Chance that an offspring mutates. 0-100
+#define MUTATION_RATE 60
+
+//The number of mutated variables when a mutation occurs
+#define MUTATION_COUNT 2
 
 class PopulationController
 {

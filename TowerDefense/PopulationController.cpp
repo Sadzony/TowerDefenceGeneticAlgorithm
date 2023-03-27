@@ -22,6 +22,7 @@ bool PopulationController::Initialize()
 	if (generationNumber == -1)
 	{
 		population = GenerateIntialPopulation();
+		generationNumber++;
 		return true;
 	}
 
@@ -32,10 +33,8 @@ bool PopulationController::Initialize()
 //Genetic initialization
 #elif REPLAY_MODE == false
 	population = LoadPopulation(populationData);
-	ExportCurrentPopulation();
 	//Perform genetic methods on input population
-	NextEpoch();
-
+	population = NextEpoch();
 	return true;
 #endif
 }
@@ -258,6 +257,72 @@ std::vector<PopulationMember> PopulationController::NextEpoch()
 		parent2 = inputPopulation.at(parent2Index);
 		outputPopulation.push_back(Crossover(parent1, parent2));
 	}
+
+	//Perform mutation
+	#if MUTATION == true
+	
+	//iterate output population
+	for (int i = 0; i < outputPopulation.size(); i++)
+	{
+		//Don't mutate the first member if elitist selection is on
+		#if ELITIST == true
+		if (i == 0)
+			continue;
+		#endif
+		//number between 1 and 100
+		int mutation = 1 + (rand() % 100);
+		if (mutation < MUTATION_RATE)
+		{
+			PositionBoard geneBoard = PositionBoard();
+			std::deque<TowerInPosition> towerQueue = outputPopulation.at(i).towerQueue;
+			for (const TowerInPosition& tower : towerQueue)
+				geneBoard.AddTower(tower.second);
+
+			for (int i = 0; i < MUTATION_COUNT; i++) {
+				//pick a mutation method at random
+				int method = rand() % 2;
+					
+				//Swapper
+				if(method == 0 && towerQueue.size() > 1)
+				{
+					//pick 2 DNA positions
+					int dnaIndex1 = rand() % towerQueue.size();
+					int dnaIndex2 = dnaIndex1;
+					while (dnaIndex2 == dnaIndex1)
+						dnaIndex2 = rand() % towerQueue.size();
+
+					//swap their elements
+					std::swap(towerQueue[dnaIndex1], towerQueue[dnaIndex2]);
+				}
+				//Value randomizer
+				else
+				{
+					//Tower type or tower position
+					int chromosome = rand() % 2;
+					//Random DNA position
+					int dnaIndex = rand() % towerQueue.size();
+					if (chromosome == 0)
+					{
+						TowerType type = (TowerType)(1 + (rand() % 3));
+						towerQueue.at(dnaIndex).first = type;
+					}
+					else
+					{
+						geneBoard.RemoveTower(towerQueue.at(dnaIndex).second);
+						int xPos = rand() % 26;
+						int yPos = rand() % 18;
+						sf::Vector2i newPos = geneBoard.FindClosestAvailableTile(sf::Vector2i(xPos, yPos));
+						geneBoard.AddTower(newPos);
+						towerQueue.at(dnaIndex).second = newPos;
+					}
+				}
+
+			}
+			outputPopulation.at(i).towerQueue = towerQueue;
+		}
+	}
+
+	#endif
 	population = outputPopulation;
 	return std::vector<PopulationMember>(population);
 }
@@ -284,7 +349,7 @@ PopulationMember PopulationController::Crossover(const PopulationMember parent1,
 		shorterChromosomeSize = parent1.towerQueue.size();
 	}
 
-	PositionBoard board;
+	PositionBoard board = PositionBoard();
 
 	//4 combinations are available. This determines which of them is chosen
 	int offspringScenario = rand() % 4;
@@ -293,8 +358,8 @@ PopulationMember PopulationController::Crossover(const PopulationMember parent1,
 	#if CROSSOVER == 0
 
 	//Find crossover points. They are placed at a random position within the shorter chromosome. Range 1 to n-1
-	int typeCrossoverPoint = 1 + (rand() % (shorterChromosomeSize-1));
-	int positionCrossoverPoint = 1 + (rand() % (shorterChromosomeSize - 1));;
+	int typeCrossoverPoint = 1 + (rand() % shorterChromosomeSize);
+	int positionCrossoverPoint = 1 + (rand() % shorterChromosomeSize);;
 
 	//The offspring will be built up to the length of the longer chromosome
 	//Iterate up to length

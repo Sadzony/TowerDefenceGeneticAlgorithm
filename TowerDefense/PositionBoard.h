@@ -14,6 +14,8 @@ public:
 	bool gridSpaceAvailable(sf::Vector2i gridPos);
 	bool AddTower(sf::Vector2i gridPos);
 
+	void RemoveTower(sf::Vector2i gridPos);
+
 	//Breadth search around a tile in a random direction
 	sf::Vector2i FindClosestAvailableTile(sf::Vector2i gridPos);
 
