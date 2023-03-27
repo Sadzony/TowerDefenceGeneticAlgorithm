@@ -46,6 +46,9 @@
     <ClCompile Include="PopulationController.cpp">
       <Filter>AI Code</Filter>
     </ClCompile>
+    <ClCompile Include="PositionBoard.cpp">
+      <Filter>Game Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Clickable.h">
@@ -101,6 +104,9 @@
     </ClInclude>
     <ClInclude Include="BreadthSearchDirections.h">
       <Filter>Game Source</Filter>
+    </ClInclude>
+    <ClInclude Include="PositionBoard.h">
+      <Filter>Game Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

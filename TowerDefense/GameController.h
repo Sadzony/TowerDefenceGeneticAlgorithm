@@ -23,7 +23,7 @@ public:
 };
 
 //Increases the number of update calls, multyplying them by the number
-#define GAME_SPEED 4
+#define GAME_SPEED 10
 
 // Game Board generates the map, and handles interactions
 // for any entities sitting on the map

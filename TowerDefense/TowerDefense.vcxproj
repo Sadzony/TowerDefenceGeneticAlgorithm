@@ -136,6 +136,7 @@
     <ClInclude Include="Clickable.h" />
     <ClInclude Include="PopulationController.h" />
     <ClInclude Include="PopulationMember.h" />
+    <ClInclude Include="PositionBoard.h" />
     <ClInclude Include="Tower.h" />
     <ClInclude Include="TowerAndMonsterController.h" />
     <ClInclude Include="TowerButton.h" />
@@ -154,6 +155,7 @@
     <ClCompile Include="AIController.cpp" />
     <ClCompile Include="Clickable.cpp" />
     <ClCompile Include="PopulationController.cpp" />
+    <ClCompile Include="PositionBoard.cpp" />
     <ClCompile Include="Tower.cpp" />
     <ClCompile Include="TowerAndMonsterController.cpp" />
     <ClCompile Include="TowerButton.cpp" />

@@ -1,5 +1,6 @@
 #include "PopulationController.h"
 #include <list>
+#include "PositionBoard.h"
 
 //instance definition
 PopulationController* PopulationController::instance = nullptr;
@@ -117,73 +118,6 @@ std::vector<PopulationMember> PopulationController::LoadPopulation(nlohmann::jso
 	return loadedPopulation;
 }
 
-
-std::vector<PopulationMember> PopulationController::NextEpoch()
-{
-	generationNumber++;
-	//Initialize mating pool
-	std::vector<PopulationMember> matingPool = std::vector<PopulationMember>();
-	//Initialize output population
-	std::vector<PopulationMember> outputPopulation = std::vector<PopulationMember>();
-
-	#if ELITIST == true
-	//Output the best chromosome straight to the output population
-	outputPopulation.push_back(population.at(0));
-	#endif
-
-
-	std::vector<PopulationMember> inputPopulation = std::vector<PopulationMember>(population);
-
-	//Tournament selection
-	#if SELECTION == 0
-	while (matingPool.size() < MATING_POOL_COUNT)
-	{
-		std::list<PopulationMember> selectionGroup = std::list<PopulationMember>();
-		//Get n genes from the pool
-		for (int i = 0; i < SELECTION_GROUP_SIZE; i++)
-		{
-			//Get random gene, add to selection group
-			int randomIndex = rand() % inputPopulation.size();
-			selectionGroup.push_back(inputPopulation.at(randomIndex));
-		}
-		//pick the best one from selection group
-		selectionGroup.sort(PopulationMember::PopulationMemberComparison);
-		matingPool.push_back(*selectionGroup.begin());
-	}
-	//Rank/Trunctating selection
-	#elif SELECTION == 1
-
-	//Get top n genes
-	std::list<PopulationMember> selectionGroup = std::list<PopulationMember>();
-	for (int i = 0; i < SELECTION_GROUP_SIZE; i++)
-	{
-		selectionGroup.push_back(inputPopulation.at(i));
-	}
-	bool matingPoolFound = false;
-	//Keep adding the genes from selection pool until mating pool filled
-	while (!matingPoolFound)
-	{
-		for (PopulationMember gene : selectionGroup)
-		{
-			matingPool.push_back(gene);
-			if (matingPool.size() > MATING_POOL_COUNT - 1)
-			{
-				matingPoolFound = true;
-				break;
-			}
-		}
-	}
-	//Roulette selection
-	#elif SELECTION == 2
-	//Give each member a fitness ranking
-	//give each member selection probability
-	//Roll n times to fill mating pool
-	#endif
-
-	//population = ??
-	return std::vector<PopulationMember>(population);
-}
-
 void PopulationController::ExportCurrentPopulation()
 {
 	//Sort the members in descending score. Done by copying the data into a list object, so the sort function can be used
@@ -224,4 +158,455 @@ void PopulationController::ExportCurrentPopulation()
 	if (!outputFile.good())
 		return;
 	outputFile << std::setw(4) << populationData;
+}
+
+std::vector<PopulationMember> PopulationController::NextEpoch()
+{
+	generationNumber++;
+	//Initialize mating pool
+	std::vector<PopulationMember> matingPool = std::vector<PopulationMember>();
+	//Initialize output population
+	std::vector<PopulationMember> outputPopulation = std::vector<PopulationMember>();
+
+#if ELITIST == true
+	//Output the best chromosome straight to the output population
+	outputPopulation.push_back(population.at(0));
+#endif
+
+
+	std::vector<PopulationMember> inputPopulation = std::vector<PopulationMember>(population);
+
+	//Tournament selection
+#if SELECTION == 0
+	while (matingPool.size() < MATING_POOL_COUNT)
+	{
+		std::list<PopulationMember> selectionGroup = std::list<PopulationMember>();
+		//Get n genes from the pool
+		for (int i = 0; i < SELECTION_GROUP_SIZE; i++)
+		{
+			//Get random gene, add to selection group
+			int randomIndex = rand() % inputPopulation.size();
+			selectionGroup.push_back(inputPopulation.at(randomIndex));
+		}
+		//pick the best one from selection group
+		selectionGroup.sort(PopulationMember::PopulationMemberComparison);
+		matingPool.push_back(*selectionGroup.begin());
+	}
+	//Rank/Trunctating selection
+#elif SELECTION == 1
+
+//Get top n genes
+	std::list<PopulationMember> selectionGroup = std::list<PopulationMember>();
+	for (int i = 0; i < SELECTION_GROUP_SIZE; i++)
+	{
+		selectionGroup.push_back(inputPopulation.at(i));
+	}
+	bool matingPoolFound = false;
+	//Keep adding the genes from selection pool until mating pool filled
+	while (!matingPoolFound)
+	{
+		for (PopulationMember gene : selectionGroup)
+		{
+			matingPool.push_back(gene);
+			if (matingPool.size() >= MATING_POOL_COUNT)
+			{
+				matingPoolFound = true;
+				break;
+			}
+		}
+	}
+	//Roulette selection
+#elif SELECTION == 2
+//find total score
+	int totalScore = 0;
+	for (PopulationMember gene : inputPopulation)
+		totalScore += gene.score;
+	//spin the wheel n times to fill the mating pool
+	while (matingPool.size() < MATING_POOL_COUNT)
+	{
+		//value between 0 and sum of scores
+		int roulette = rand() % (totalScore + 1);
+		int range_min = 0;
+		//iterate the population and find where the roulette landed
+		for (PopulationMember gene : inputPopulation)
+		{
+			if (roulette <= range_min + gene.score)
+			{
+				matingPool.push_back(gene);
+				break;
+			}
+			else
+				range_min += gene.score;
+		}
+	}
+#endif
+
+	//The mating pool has been created. Perform crossover
+	
+	//Create offspring until output population is full
+	while (outputPopulation.size() < POPULATION_COUNT)
+	{
+		//Pick 2 parents from the input population
+		PopulationMember parent1, parent2;
+		int parent1Index = rand() % POPULATION_COUNT;
+		parent1 = inputPopulation.at(parent1Index);
+
+		//Ensuring that the second parent is not the same as first parent
+		int parent2Index = parent1Index;
+		while (parent1Index == parent2Index)
+			parent2Index = rand() % POPULATION_COUNT;
+		parent2 = inputPopulation.at(parent2Index);
+		outputPopulation.push_back(Crossover(parent1, parent2));
+	}
+	population = outputPopulation;
+	return std::vector<PopulationMember>(population);
+}
+PopulationMember PopulationController::Crossover(const PopulationMember parent1, const PopulationMember parent2)
+{
+	PopulationMember offspring = PopulationMember();
+
+	//Identify the member that has the longer chromosome. If they're the same it doesn't matter.
+	const PopulationMember* longerChromosomeMember;
+	const PopulationMember* shorterChromosomeMember;
+	int longerChromosomeSize, shorterChromosomeSize;
+	if (parent1.towerQueue.size() > parent2.towerQueue.size())
+	{
+		longerChromosomeMember = &parent1;
+		longerChromosomeSize = parent1.towerQueue.size();
+		shorterChromosomeMember = &parent2;
+		shorterChromosomeSize = parent2.towerQueue.size();
+	}
+	else
+	{
+		longerChromosomeMember = &parent2;
+		longerChromosomeSize = parent2.towerQueue.size();
+		shorterChromosomeMember = &parent1;
+		shorterChromosomeSize = parent1.towerQueue.size();
+	}
+
+	PositionBoard board;
+
+	//4 combinations are available. This determines which of them is chosen
+	int offspringScenario = rand() % 4;
+
+	//Point crossover
+	#if CROSSOVER == 0
+
+	//Find crossover points. They are placed at a random position within the shorter chromosome. Range 1 to n-1
+	int typeCrossoverPoint = 1 + (rand() % (shorterChromosomeSize-1));
+	int positionCrossoverPoint = 1 + (rand() % (shorterChromosomeSize - 1));;
+
+	//The offspring will be built up to the length of the longer chromosome
+	//Iterate up to length
+	for (int i = 0; i < longerChromosomeSize; i++)
+	{
+		TowerType nextType;
+		sf::Vector2i nextPosition;
+		TowerInPosition nextTower;
+		//check if shorter chromosme is still accessible by i
+		if (i < shorterChromosomeSize)
+		{
+			switch (offspringScenario)
+			{
+			//pos: 0 | 1, type: 0 | 1
+			case 0:
+				//Find next tower type
+				if (i < typeCrossoverPoint)
+				{
+					nextType = longerChromosomeMember->towerQueue.at(i).first;
+				}
+				else
+				{
+					nextType = shorterChromosomeMember->towerQueue.at(i).first;
+				}
+				//find next tower position
+				if (i < positionCrossoverPoint)
+				{
+					nextPosition = longerChromosomeMember->towerQueue.at(i).second;
+				}
+				else
+				{
+					nextPosition = shorterChromosomeMember->towerQueue.at(i).second;
+				}
+				nextTower = std::make_pair(nextType, nextPosition);
+				//Check if the tower will fit in the position. If not, correct it
+				if (board.gridSpaceAvailable(nextTower.second))
+				{
+					board.AddTower(nextTower.second);
+					offspring.towerQueue.push_back(nextTower);
+				}
+				else
+				{
+					nextTower.second = board.FindClosestAvailableTile(nextTower.second);
+					board.AddTower(nextTower.second);
+					offspring.towerQueue.push_back(nextTower);
+				}
+				break;
+			//pos: 1 | 0, type: 1 | 0
+			case 1:
+				//Find next tower type
+				if (i < typeCrossoverPoint)
+				{
+					nextType = shorterChromosomeMember->towerQueue.at(i).first;
+				}
+				else
+				{
+					nextType = longerChromosomeMember->towerQueue.at(i).first;
+				}
+				//find next tower position
+				if (i < positionCrossoverPoint)
+				{
+					nextPosition = shorterChromosomeMember->towerQueue.at(i).second;
+				}
+				else
+				{
+					nextPosition = longerChromosomeMember->towerQueue.at(i).second;
+				}
+				nextTower = std::make_pair(nextType, nextPosition);
+				//Check if the tower will fit in the position. If not, correct it
+				if (board.gridSpaceAvailable(nextTower.second))
+				{
+					board.AddTower(nextTower.second);
+					offspring.towerQueue.push_back(nextTower);
+				}
+				else
+				{
+					nextTower.second = board.FindClosestAvailableTile(nextTower.second);
+					board.AddTower(nextTower.second);
+					offspring.towerQueue.push_back(nextTower);
+				}
+				break;
+			//pos: 1 | 0, type: 0 | 1
+			case 2:
+				//Find next tower type
+				if (i < typeCrossoverPoint)
+				{
+					nextType = shorterChromosomeMember->towerQueue.at(i).first;
+				}
+				else
+				{
+					nextType = longerChromosomeMember->towerQueue.at(i).first;
+				}
+				//find next tower position
+				if (i < positionCrossoverPoint)
+				{
+					nextPosition = longerChromosomeMember->towerQueue.at(i).second;
+				}
+				else
+				{
+					nextPosition = shorterChromosomeMember->towerQueue.at(i).second;
+				}
+				nextTower = std::make_pair(nextType, nextPosition);
+				//Check if the tower will fit in the position. If not, correct it
+				if (board.gridSpaceAvailable(nextTower.second))
+				{
+					board.AddTower(nextTower.second);
+					offspring.towerQueue.push_back(nextTower);
+				}
+				else
+				{
+					nextTower.second = board.FindClosestAvailableTile(nextTower.second);
+					board.AddTower(nextTower.second);
+					offspring.towerQueue.push_back(nextTower);
+				}
+				break;
+			//pos: 0 | 1, type: 1 | 0
+			case 3:
+				//Find next tower type
+				if (i < typeCrossoverPoint)
+				{
+					nextType = longerChromosomeMember->towerQueue.at(i).first;
+				}
+				else
+				{
+					nextType = shorterChromosomeMember->towerQueue.at(i).first;
+				}
+				//find next tower position
+				if (i < positionCrossoverPoint)
+				{
+					nextPosition = shorterChromosomeMember->towerQueue.at(i).second;
+				}
+				else
+				{
+					nextPosition = longerChromosomeMember->towerQueue.at(i).second;
+				}
+				nextTower = std::make_pair(nextType, nextPosition);
+				//Check if the tower will fit in the position. If not, correct it
+				if (board.gridSpaceAvailable(nextTower.second))
+				{
+					board.AddTower(nextTower.second);
+					offspring.towerQueue.push_back(nextTower);
+				}
+				else
+				{
+					nextTower.second = board.FindClosestAvailableTile(nextTower.second);
+					board.AddTower(nextTower.second);
+					offspring.towerQueue.push_back(nextTower);
+				}
+				break;
+			}
+		}
+		//Otherwise, fill with longer DNA
+		else
+		{
+			TowerInPosition nextTower = longerChromosomeMember->towerQueue.at(i);
+			//Check if the tower will fit in the position
+			if (board.gridSpaceAvailable(nextTower.second))
+			{
+				board.AddTower(nextTower.second);
+				offspring.towerQueue.push_back(nextTower);
+			}
+			else
+			{
+				nextTower.second = board.FindClosestAvailableTile(nextTower.second);
+				board.AddTower(nextTower.second);
+				offspring.towerQueue.push_back(nextTower);
+			}
+		}
+	}
+
+	//Uniform crossover
+	#elif CROSSOVER == 1
+
+
+	//The offspring will be built up to the length of the longer chromosome
+	//Iterate up to length
+	for (int i = 0; i < longerChromosomeSize; i++)
+	{
+		TowerType nextType;
+		sf::Vector2i nextPosition;
+		TowerInPosition nextTower;
+		//check if shorter chromosme is still accessible by i
+		if (i < shorterChromosomeSize)
+		{
+			switch (offspringScenario)
+			{
+				//pos: 0101, type: 0101
+			case 0:
+				//Find next tower from parents
+
+				if (i % 2 == 0)
+				{
+					nextTower = longerChromosomeMember->towerQueue.at(i);
+				}
+				else
+				{
+					nextTower = shorterChromosomeMember->towerQueue.at(i);
+				}
+				//Check if the tower will fit in the position. If not, correct it
+				if (board.gridSpaceAvailable(nextTower.second))
+				{
+					board.AddTower(nextTower.second);
+					offspring.towerQueue.push_back(nextTower);
+				}
+				else
+				{
+					nextTower.second = board.FindClosestAvailableTile(nextTower.second);
+					board.AddTower(nextTower.second);
+					offspring.towerQueue.push_back(nextTower);
+				}
+				break;
+				//pos: 1010, type: 1010
+			case 1:
+				//Find next tower from parents
+				if (i % 2 == 0)
+				{
+					nextTower = shorterChromosomeMember->towerQueue.at(i);
+				}
+				else
+				{
+					nextTower = longerChromosomeMember->towerQueue.at(i);
+				}
+				//Check if the tower will fit in the position. If not, correct it
+				if (board.gridSpaceAvailable(nextTower.second))
+				{
+					board.AddTower(nextTower.second);
+					offspring.towerQueue.push_back(nextTower);
+				}
+				else
+				{
+					nextTower.second = board.FindClosestAvailableTile(nextTower.second);
+					board.AddTower(nextTower.second);
+					offspring.towerQueue.push_back(nextTower);
+				}
+				break;
+				//pos: 0101, type: 1010
+			case 2:
+				if (i % 2 == 0)
+				{
+					nextType = longerChromosomeMember->towerQueue.at(i).first;
+					nextPosition = shorterChromosomeMember->towerQueue.at(i).second;
+				}
+				else
+				{
+					nextType = shorterChromosomeMember->towerQueue.at(i).first;
+					nextPosition = longerChromosomeMember->towerQueue.at(i).second;
+				}
+				nextTower = std::make_pair(nextType, nextPosition);
+
+				//Check if the tower will fit in the position. If not, correct it
+				if (board.gridSpaceAvailable(nextTower.second))
+				{
+					board.AddTower(nextTower.second);
+					offspring.towerQueue.push_back(nextTower);
+				}
+				else
+				{
+					nextTower.second = board.FindClosestAvailableTile(nextTower.second);
+					board.AddTower(nextTower.second);
+					offspring.towerQueue.push_back(nextTower);
+				}
+				break;
+				//pos: 1010, type: 0101
+			case 3:
+				if (i % 2 == 0)
+				{
+					nextType = shorterChromosomeMember->towerQueue.at(i).first;
+					nextPosition = longerChromosomeMember->towerQueue.at(i).second;
+				}
+				else
+				{
+					nextType = longerChromosomeMember->towerQueue.at(i).first;
+					nextPosition = shorterChromosomeMember->towerQueue.at(i).second;
+				}
+				nextTower = std::make_pair(nextType, nextPosition);
+
+				//Check if the tower will fit in the position. If not, correct it
+				if (board.gridSpaceAvailable(nextTower.second))
+				{
+					board.AddTower(nextTower.second);
+					offspring.towerQueue.push_back(nextTower);
+				}
+				else
+				{
+					nextTower.second = board.FindClosestAvailableTile(nextTower.second);
+					board.AddTower(nextTower.second);
+					offspring.towerQueue.push_back(nextTower);
+				}
+				break;
+			}
+		}
+		//Otherwise, fill with longer DNA
+		else
+		{
+			TowerInPosition nextTower = longerChromosomeMember->towerQueue.at(i);
+			//Check if the tower will fit in the position
+			if (board.gridSpaceAvailable(nextTower.second))
+			{
+				board.AddTower(nextTower.second);
+				offspring.towerQueue.push_back(nextTower);
+			}
+			else
+			{
+				nextTower.second = board.FindClosestAvailableTile(nextTower.second);
+				board.AddTower(nextTower.second);
+				offspring.towerQueue.push_back(nextTower);
+			}
+		}
+	}
+	#endif
+
+
+
+	return offspring;
 }

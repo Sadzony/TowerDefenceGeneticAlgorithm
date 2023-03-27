@@ -22,24 +22,24 @@ enum SelectionMethod
 };
 enum CrossoverMethod
 {
-	ONE_POINT = 0,
+	POINT = 0,
 	UNIFORM = 1
 };
 
-#define POPULATION_COUNT 10
+#define POPULATION_COUNT 15
 
-#define MATING_POOL_COUNT 6
+#define MATING_POOL_COUNT 8
 
 //Defines the chosen selection method
-#define SELECTION 1
+#define SELECTION 0
 
-#define SELECTION_GROUP_SIZE 4
+#define SELECTION_GROUP_SIZE 5
 
 //Turns elitist selection on and off
 #define ELITIST true
 
 //Defines the crossover method
-#define CROSSOVER 1
+#define CROSSOVER 0
 
 //Turns mutation on and off
 #define MUTATION false
@@ -89,6 +89,8 @@ private:
 
 	//Loads a population from a json object
 	std::vector<PopulationMember> LoadPopulation(json populationObject);
+
+	PopulationMember Crossover(const PopulationMember parent1, const PopulationMember parent2);
 
 public:
 	//Takes the current population, and outputs the genetically modified offspring
